@@ -4,9 +4,7 @@ public class CardSelector : MonoBehaviour
 {
     private void OnMouseUp()
     {
-        Debug.Log("OnMouseUp", gameObject);
         RotateCard();
-        
         CardComparator.instance.SetCard(this);
     }
 
