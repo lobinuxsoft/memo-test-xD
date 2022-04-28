@@ -7,7 +7,8 @@ public class CardComparator : MonoBehaviour
     public static CardComparator Instance;
 
     [SerializeField] private int totalCrads;
-    private CardSelector[] cards = new CardSelector[2];
+    [SerializeField] private int cardsAmountToCompare = 2;
+    private List<CardSelector> cards = new List<CardSelector>();
 
     private void Awake()
     {
@@ -18,46 +19,39 @@ public class CardComparator : MonoBehaviour
 
     public void SetCard(CardSelector card)
     {
-        if (!cards[0])
-        {
-            cards[0] = card;
-        }
-        else if (!cards[1])
-        {
-            cards[1] = card;
-        }
+        cards.Add(card);
 
-        if (cards[0] && cards[1]) CompareCards();
+        if (cards.Count == cardsAmountToCompare) CompareCards();
     }
 
     private async void CompareCards()
     {
-        if (cards[0].name.Contains(cards[1].name))
+        for (int i = 1; i < cards.Count; i++)
         {
-            cards[0].gameObject.SetActive(false);
-            cards[1].gameObject.SetActive(false);
-            
-            cards[0].transform.SetParent(this.transform);
-            cards[1].transform.SetParent(this.transform);
-
-            cards[0] = null;
-            cards[1] = null;
-        }
-        else
-        {
-
-            var tasks = new List<Task>();
-
-            for (int i = 0; i < 2; i++)
+            if (!cards[0].name.Contains(cards[i].name))
             {
-                tasks.Add(cards[i].RotateCard());
-            }
+                var tasks = new List<Task>();
 
-            await Task.WhenAll(tasks);
+                for (int j = 0; j < cards.Count; j++)
+                {
+                    tasks.Add(cards[j].RotateCard());
+                }
+
+                await Task.WhenAll(tasks);
             
-            cards[0] = null;
-            cards[1] = null;
+                cards.Clear();
+                
+                return;
+            }
         }
+
+        foreach (CardSelector card in cards)
+        {
+            card.gameObject.SetActive(false);
+            card.transform.SetParent(this.transform);
+        }
+        
+        cards.Clear();
 
         if (transform.childCount >= totalCrads)
         {
