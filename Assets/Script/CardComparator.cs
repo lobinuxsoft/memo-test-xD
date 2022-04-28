@@ -1,54 +1,62 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class CardComparator : MonoBehaviour
 {
-    public static CardComparator instance;
+    public static CardComparator Instance;
 
-    [SerializeField] private int totalCrads = 0;
-    private CardSelector card1 = null;
-    private CardSelector card2 = null;
+    [SerializeField] private int totalCrads;
+    private CardSelector[] cards = new CardSelector[2];
 
     private void Awake()
     {
-        instance = this;
+        Instance = this;
 
         totalCrads = FindObjectsOfType<CardSelector>().Length;
     }
 
     public void SetCard(CardSelector card)
     {
-        if (!card1)
+        if (!cards[0])
         {
-            card1 = card;
+            cards[0] = card;
         }
-        else if (!card2)
+        else if (!cards[1])
         {
-            card2 = card;
+            cards[1] = card;
         }
 
-        if (card1 && card2) CompareCards();
+        if (cards[0] && cards[1]) CompareCards();
     }
 
-    private void CompareCards()
+    private async void CompareCards()
     {
-        if (card1.name.Contains(card2.name))
+        if (cards[0].name.Contains(cards[1].name))
         {
-            card1.gameObject.SetActive(false);
-            card2.gameObject.SetActive(false);
+            cards[0].gameObject.SetActive(false);
+            cards[1].gameObject.SetActive(false);
             
-            card1.transform.SetParent(this.transform);
-            card2.transform.SetParent(this.transform);
+            cards[0].transform.SetParent(this.transform);
+            cards[1].transform.SetParent(this.transform);
 
-            card1 = null;
-            card2 = null;
+            cards[0] = null;
+            cards[1] = null;
         }
         else
         {
-            card1.RotateCard();
-            card2.RotateCard();
 
-            card1 = null;
-            card2 = null;
+            var tasks = new List<Task>();
+
+            for (int i = 0; i < 2; i++)
+            {
+                tasks.Add(cards[i].RotateCard());
+            }
+
+            await Task.WhenAll(tasks);
+            
+            cards[0] = null;
+            cards[1] = null;
         }
 
         if (transform.childCount >= totalCrads)

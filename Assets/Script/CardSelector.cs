@@ -1,15 +1,26 @@
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class CardSelector : MonoBehaviour
 {
-    private void OnMouseUp()
+    private async void OnMouseUp()
     {
-        RotateCard();
-        CardComparator.instance.SetCard(this);
+        await RotateCard();
+        CardComparator.Instance.SetCard(this);
     }
 
-    public void RotateCard()
+    public async Task RotateCard()
     {
-        transform.rotation = Quaternion.LookRotation(-transform.forward);
+        Quaternion targetRot = Quaternion.LookRotation(-transform.forward);
+        float lerp = 0;
+        
+        while (Quaternion.Angle(transform.rotation, targetRot) > 0.001f)
+        {
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, lerp);
+            lerp += Time.deltaTime;
+            await Task.Yield();
+        }
+        
+        transform.rotation = targetRot;
     }
 }
